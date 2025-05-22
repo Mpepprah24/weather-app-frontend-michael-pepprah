@@ -1,43 +1,72 @@
 const apiKey = "8954583a7ab59de50058944f2e7289ad";
 
-async function getWeather() {
-  const location = document.getElementById("location").value;
-  const weatherDiv = document.getElementById("weather");
-  const forecastDiv = document.getElementById("forecast");
-  const error = document.getElementById("error");
+const searchBtn = document.getElementById("search-btn");
+const currentBtn = document.getElementById("current-location-btn");
+const errorEl  = document.getElementById("error-message");
 
-  error.innerText = "";  // Clear errors
-  weatherDiv.innerHTML = "";
-  forecastDiv.innerHTML = "";
+searchBtn.addEventListener("click", getWeatherByCity);
+currentBtn.addEventListener("click", getWeatherByGeo);
 
+async function getWeatherByCity() {
+  const location = document.getElementById("location").value.trim();
   if (!location) {
-    error.innerText = "Please enter a location!";
-    return;
+    return (errorEl.innerText = "Please enter a location!");
   }
+  await fetchAndDisplay(`q=${encodeURIComponent(location)}`);
+}
 
+function getWeatherByGeo() {
+  if (!navigator.geolocation) {
+    return (errorEl.innerText = "Geolocation not supported.");
+  }
+  navigator.geolocation.getCurrentPosition(
+    ({ coords }) => {
+      fetchAndDisplay(`lat=${coords.latitude}&lon=${coords.longitude}`);
+    },
+    () => (errorEl.innerText = "Unable to retrieve your location.")
+  );
+}
+
+async function fetchAndDisplay(query) {
+  errorEl.innerText = "";
+  // Current weather
   try {
-    const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=metric`);
-    if (!res.ok) throw new Error("Location not found");
+    const [weatherRes, forecastRes] = await Promise.all([
+      fetch(`https://api.openweathermap.org/data/2.5/weather?${query}&appid=${apiKey}&units=metric`),
+      fetch(`https://api.openweathermap.org/data/2.5/forecast?${query}&appid=${apiKey}&units=metric`)
+    ]);
+    if (!weatherRes.ok) throw new Error("Location not found");
+    const weather = await weatherRes.json();
+    document.getElementById("location-name").innerText = weather.name;
+    document.getElementById("temperature").innerText = `${weather.main.temp}°C`;
+    document.getElementById("weather-icon").src =
+      `https://openweathermap.org/img/wn/${weather.weather[0].icon}.png`;
+    document.getElementById("humidity").innerText = `${weather.main.humidity}%`;
+    document.getElementById("wind").innerText = `${weather.wind.speed} km/h`;
 
-    const data = await res.json();
-
-    weatherDiv.innerHTML = `
-      <h2>${data.name}</h2>
-      <p>${data.weather[0].description}</p>
-      <p>🌡️ ${data.main.temp}°C</p>
-    `;
-
-    // 5-day Forecast
-    const forecastRes = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${location}&appid=${apiKey}&units=metric`);
+    // 5-day forecast (every 8th entry ≈ 24h)
     const forecastData = await forecastRes.json();
+    const container = document.getElementById("forecast-items");
+    container.innerHTML = "";
+    forecastData.list
+      .filter((_, i) => i % 8 === 0)
+      .forEach(day => {
+        const date = day.dt_txt.split(" ")[0];
+        const iconUrl = `https://openweathermap.org/img/wn/${day.weather[0].icon}.png`;
+        container.innerHTML += `
+          <div class="forecast-item">
+            <p>${date}</p>
+            <img src="${iconUrl}" alt="${day.weather[0].description}" />
+            <p>${day.main.temp}°C</p>
+            <small>${day.weather[0].description}</small>
+          </div>`;
+      });
 
-    let forecastHTML = "<h3>5-Day Forecast:</h3><ul>";
-    for (let i = 0; i < forecastData.list.length; i += 8) {
-      let day = forecastData.list[i];
-      forecastHTML += `<li>${day.dt_txt}: ${day.main.temp}°C, ${day.weather[0].description}</li>`;
-    }
-    forecastHTML += "</ul>";
-    forecastDiv.innerHTML = forecastHTML;
+  } catch (err) {
+    errorEl.innerText = err.message;
+  }
+}
+
 
   } catch (err) {
     error.innerText = err.message;
