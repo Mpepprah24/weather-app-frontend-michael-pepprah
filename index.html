@@ -1,38 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WeatherSync</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>WeatherSync</title>
+  <!-- point to your CSS file -->
+  <link rel="stylesheet" href="style.css" />
+  <!-- point to the corrected JS filename -->
+  <script src="script.js" defer></script>
 </head>
 <body>
-    <button id="search-btn">Search</button>
-    <button id="current-location-btn">Use My Location</button>
+  <div class="container">
+    <div class="search-container">
+      <input
+        type="text"
+        id="location"
+        placeholder="Enter city, zip code or coords"
+      />
+      <button id="search-btn">Search</button>
+      <button id="current-location-btn">Use My Location</button>
+    </div>
 
     <div class="weather-display">
-        <div class="current-weather">
-            <h2 id="location-name">--</h2>
-            <div class="weather-main">
-                <img id="weather-icon" src="" alt="Weather icon">
-                <span id="temperature">--°C</span>
-            </div>
-            <div id="weather-details">
-                <p>Humidity: <span id="humidity">--%</span></p>
-                <p>Wind: <span id="wind">-- km/h</span></p>
-            </div>
+      <div class="current-weather">
+        <h2 id="location-name">--</h2>
+        <div class="weather-main">
+          <img id="weather-icon" src="" alt="Weather icon" />
+          <span id="temperature">--°C</span>
         </div>
+        <div id="weather-details">
+          <p>Humidity: <span id="humidity">--%</span></p>
+          <p>Wind: <span id="wind">-- km/h</span></p>
+        </div>
+      </div>
 
-        <div class="forecast" id="five-day-forecast">
-            <h3>5-Day Forecast</h3>
-            <div class="forecast-items" id="forecast-items">
-                
-            </div>
-        </div>
+      <div class="forecast">
+        <h3>5-Day Forecast</h3>
+        <div class="forecast-items" id="forecast-items"></div>
+      </div>
     </div>
 
     <div class="error-message" id="error-message"></div>
-
+  </div>
 </body>
 </html>
